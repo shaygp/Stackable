@@ -2,7 +2,6 @@
 ;; Comprehensive bonding curve implementation with multiple curve types and liquidity management
 
 ;; Constants
-(define-constant CONTRACT-OWNER tx-sender)
 (define-constant CURVE-LINEAR u0)
 (define-constant CURVE-EXPONENTIAL u1)
 (define-constant CURVE-LOGARITHMIC u2)
@@ -21,6 +20,7 @@
 (define-constant ERR-INVALID-CURVE-TYPE (err u2009))
 (define-constant ERR-GRADUATION-THRESHOLD-NOT-MET (err u2010))
 (define-constant ERR-ALREADY-GRADUATED (err u2011))
+(define-constant ERR-NOT-INITIALIZED (err u2012))
 
 ;; Data structures
 (define-map curve-info
@@ -78,13 +78,24 @@
 
 ;; Global settings
 (define-data-var contract-paused bool false)
-(define-data-var protocol-fee-percentage uint u30) ;; 0.3% = 30 basis points
-(define-data-var protocol-fee-recipient principal CONTRACT-OWNER)
+(define-data-var protocol-fee-percentage uint u30)
+(define-data-var protocol-fee-recipient (optional principal) none)
+(define-data-var contract-owner (optional principal) none)
 (define-data-var graduation-enabled bool true)
 
 ;; Admin management
 (define-map admins principal bool)
-(map-set admins CONTRACT-OWNER true)
+
+;; Initialize contract (must be called once)
+(define-public (initialize (owner principal))
+  (begin
+    (asserts! (is-none (var-get contract-owner)) ERR-UNAUTHORIZED)
+    (var-set contract-owner (some owner))
+    (var-set protocol-fee-recipient (some owner))
+    (map-set admins owner true)
+    (ok true)
+  )
+)
 
 ;; Launch a new token with bonding curve
 (define-public (launch-token
@@ -173,7 +184,7 @@
     (asserts! (<= total-cost (+ required-payment (/ (* required-payment max-slippage) u10000))) ERR-SLIPPAGE-EXCEEDED)
 
     ;; Transfer STX from buyer to contract
-    (try! (stx-transfer? total-cost tx-sender (as-contract tx-sender)))
+    (unwrap! (stx-transfer? total-cost tx-sender (as-contract tx-sender)) ERR-INSUFFICIENT-PAYMENT)
 
     ;; Update curve info
     (map-set curve-info
@@ -246,7 +257,7 @@
     (record-trade symbol tx-sender amount net-refund false)
 
     ;; Transfer STX from contract to seller
-    (try! (as-contract (stx-transfer? net-refund tx-sender tx-sender)))
+    (unwrap! (as-contract (stx-transfer? net-refund (as-contract tx-sender) tx-sender)) ERR-INSUFFICIENT-LIQUIDITY)
 
     (print {
       event: "token-sold",
@@ -556,7 +567,7 @@
 (define-public (set-fee-recipient (recipient principal))
   (begin
     (asserts! (is-admin tx-sender) ERR-UNAUTHORIZED)
-    (var-set protocol-fee-recipient recipient)
+    (var-set protocol-fee-recipient (some recipient))
     (print { event: "fee-recipient-updated", recipient: recipient })
     (ok true)
   )
@@ -581,9 +592,9 @@
 )
 
 (define-public (remove-admin (admin principal))
-  (begin
+  (let ((owner (unwrap! (var-get contract-owner) ERR-NOT-INITIALIZED)))
     (asserts! (is-admin tx-sender) ERR-UNAUTHORIZED)
-    (asserts! (not (is-eq admin CONTRACT-OWNER)) ERR-UNAUTHORIZED)
+    (asserts! (not (is-eq admin owner)) ERR-UNAUTHORIZED)
     (map-set admins admin false)
     (print { event: "admin-removed", admin: admin })
     (ok true)

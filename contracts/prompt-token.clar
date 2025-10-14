@@ -4,7 +4,6 @@
 (impl-trait .sip010-token-trait.sip010-ft-trait)
 
 ;; Constants
-(define-constant CONTRACT-OWNER tx-sender)
 (define-constant TOKEN-NAME "Stackable Token")
 (define-constant TOKEN-SYMBOL "STACK")
 (define-constant TOKEN-DECIMALS u6)
@@ -22,6 +21,7 @@
 (define-constant ERR-BLACKLISTED (err u1008))
 (define-constant ERR-MAX-SUPPLY-REACHED (err u1009))
 (define-constant ERR-INVALID-RECIPIENT (err u1010))
+(define-constant ERR-NOT-INITIALIZED (err u1011))
 
 ;; Data Variables
 (define-data-var token-name (string-ascii 32) TOKEN-NAME)
@@ -29,8 +29,9 @@
 (define-data-var token-uri (optional (string-utf8 256)) (some TOKEN-URI))
 (define-data-var token-decimals uint TOKEN-DECIMALS)
 (define-data-var total-supply uint u0)
-(define-data-var max-supply uint u1000000000000) ;; 1 million with 6 decimals
+(define-data-var max-supply uint u1000000000000)
 (define-data-var contract-paused bool false)
+(define-data-var contract-owner (optional principal) none)
 
 ;; Token balances
 (define-map balances principal uint)
@@ -70,9 +71,16 @@
 )
 (define-map transfer-counts principal uint)
 
-;; Initialize contract
-(map-set admins CONTRACT-OWNER true)
-(map-set minters CONTRACT-OWNER true)
+;; Initialize the contract
+(define-public (initialize (owner principal))
+  (begin
+    (asserts! (is-none (var-get contract-owner)) ERR-UNAUTHORIZED)
+    (var-set contract-owner (some owner))
+    (map-set admins owner true)
+    (map-set minters owner true)
+    (ok true)
+  )
+)
 
 ;; SIP-010 Functions
 
@@ -277,9 +285,9 @@
 )
 
 (define-public (remove-admin (admin principal))
-  (begin
+  (let ((owner (unwrap! (var-get contract-owner) ERR-NOT-INITIALIZED)))
     (asserts! (is-admin tx-sender) ERR-UNAUTHORIZED)
-    (asserts! (not (is-eq admin CONTRACT-OWNER)) ERR-UNAUTHORIZED)
+    (asserts! (not (is-eq admin owner)) ERR-UNAUTHORIZED)
     (map-set admins admin false)
     (print { event: "admin-removed", admin: admin })
     (ok true)

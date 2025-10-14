@@ -126,7 +126,7 @@ export default function TerminalPage() {
             ? new StacksMainnet()
             : new StacksTestnet()
 
-          const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
+          const contractAddress = process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS || ''
 
           await makeContractCall({
             network,
@@ -183,7 +183,7 @@ export default function TerminalPage() {
             ? new StacksMainnet()
             : new StacksTestnet()
 
-          const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
+          const contractAddress = process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS || ''
 
           await makeContractCall({
             network,
@@ -237,7 +237,7 @@ export default function TerminalPage() {
             ? new StacksMainnet()
             : new StacksTestnet()
 
-          const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
+          const contractAddress = process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS || ''
 
           await makeContractCall({
             network,

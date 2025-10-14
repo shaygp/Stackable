@@ -1,9 +1,6 @@
 ;; Governance Contract for Stacks
 ;; DAO governance system with proposals, voting, and timelock execution
 
-;; Constants
-(define-constant CONTRACT-OWNER tx-sender)
-
 ;; Proposal states
 (define-constant PROPOSAL-STATE-PENDING u0)
 (define-constant PROPOSAL-STATE-ACTIVE u1)
@@ -32,16 +29,18 @@
 (define-constant ERR-PROPOSAL-EXPIRED (err u5008))
 (define-constant ERR-INVALID-PROPOSAL-TYPE (err u5009))
 (define-constant ERR-QUORUM-NOT-MET (err u5010))
+(define-constant ERR-NOT-INITIALIZED (err u5011))
 
 ;; Data structures
 
 ;; Governance parameters
-(define-data-var voting-period uint u1008) ;; ~1 week in blocks
-(define-data-var voting-delay uint u144) ;; ~1 day in blocks
-(define-data-var proposal-threshold uint u1000) ;; Minimum voting power to propose
-(define-data-var quorum-percentage uint u400) ;; 4% quorum
-(define-data-var timelock-delay uint u288) ;; ~2 days in blocks
-(define-data-var execution-grace-period uint u1008) ;; ~1 week grace period
+(define-data-var voting-period uint u1008)
+(define-data-var voting-delay uint u144)
+(define-data-var proposal-threshold uint u1000)
+(define-data-var quorum-percentage uint u400)
+(define-data-var timelock-delay uint u288)
+(define-data-var execution-grace-period uint u1008)
+(define-data-var contract-owner (optional principal) none)
 
 ;; Proposals
 (define-map proposals
@@ -128,7 +127,16 @@
 
 ;; Admin and guardian roles
 (define-map guardians principal bool)
-(map-set guardians CONTRACT-OWNER true)
+
+;; Initialize contract
+(define-public (initialize (owner principal))
+  (begin
+    (asserts! (is-none (var-get contract-owner)) ERR-UNAUTHORIZED)
+    (var-set contract-owner (some owner))
+    (map-set guardians owner true)
+    (ok true)
+  )
+)
 
 ;; Proposal Functions
 
@@ -530,9 +538,9 @@
 )
 
 (define-public (remove-guardian (guardian principal))
-  (begin
+  (let ((owner (unwrap! (var-get contract-owner) ERR-NOT-INITIALIZED)))
     (asserts! (is-guardian tx-sender) ERR-UNAUTHORIZED)
-    (asserts! (not (is-eq guardian CONTRACT-OWNER)) ERR-UNAUTHORIZED)
+    (asserts! (not (is-eq guardian owner)) ERR-UNAUTHORIZED)
     (map-set guardians guardian false)
     (print { event: "guardian-removed", guardian: guardian })
     (ok true)

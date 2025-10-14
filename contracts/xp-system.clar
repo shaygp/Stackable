@@ -2,7 +2,6 @@
 ;; Gamification layer with experience points, levels, achievements, and quest system
 
 ;; Constants
-(define-constant CONTRACT-OWNER tx-sender)
 
 ;; Level thresholds (XP required for each level)
 (define-constant LEVEL-1-XP u0)
@@ -35,6 +34,7 @@
 (define-constant ERR-QUEST-EXPIRED (err u3008))
 (define-constant ERR-REQUIREMENTS-NOT-MET (err u3009))
 (define-constant ERR-PAUSED (err u3010))
+(define-constant ERR-NOT-INITIALIZED (err u3011))
 
 ;; Data structures
 
@@ -134,15 +134,25 @@
 
 ;; Global settings
 (define-data-var contract-paused bool false)
-(define-data-var base-xp-multiplier uint u100) ;; 100 = 1x, 200 = 2x
+(define-data-var base-xp-multiplier uint u100)
 (define-data-var referral-bonus-xp uint u50)
 (define-data-var daily-streak-bonus uint u10)
+(define-data-var contract-owner (optional principal) none)
 
 ;; Admin management
 (define-map admins principal bool)
 (define-map quest-creators principal bool)
-(map-set admins CONTRACT-OWNER true)
-(map-set quest-creators CONTRACT-OWNER true)
+
+;; Initialize the contract
+(define-public (initialize (owner principal))
+  (begin
+    (asserts! (is-none (var-get contract-owner)) ERR-UNAUTHORIZED)
+    (var-set contract-owner (some owner))
+    (map-set admins owner true)
+    (map-set quest-creators owner true)
+    (ok true)
+  )
+)
 
 ;; Core XP Functions
 
@@ -653,9 +663,9 @@
 )
 
 (define-public (remove-admin (admin principal))
-  (begin
+  (let ((owner (unwrap! (var-get contract-owner) ERR-NOT-INITIALIZED)))
     (asserts! (is-admin tx-sender) ERR-UNAUTHORIZED)
-    (asserts! (not (is-eq admin CONTRACT-OWNER)) ERR-UNAUTHORIZED)
+    (asserts! (not (is-eq admin owner)) ERR-UNAUTHORIZED)
     (map-set admins admin false)
     (print { event: "admin-removed", admin: admin })
     (ok true)

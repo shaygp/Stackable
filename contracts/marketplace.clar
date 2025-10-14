@@ -1,9 +1,6 @@
 ;; Marketplace Contract for Stacks
 ;; Decentralized marketplace for trading tokens with orderbook and price discovery
 
-;; Constants
-(define-constant CONTRACT-OWNER tx-sender)
-
 ;; Order types
 (define-constant ORDER-TYPE-MARKET u0)
 (define-constant ORDER-TYPE-LIMIT u1)
@@ -26,6 +23,7 @@
 (define-constant ERR-PAUSED (err u4008))
 (define-constant ERR-INVALID-ORDER-TYPE (err u4009))
 (define-constant ERR-NOT-ORDER-OWNER (err u4010))
+(define-constant ERR-NOT-INITIALIZED (err u4011))
 
 ;; Data structures
 
@@ -113,10 +111,11 @@
 )
 
 ;; Trading fees
-(define-data-var maker-fee-bps uint u10) ;; 0.1% = 10 basis points
-(define-data-var taker-fee-bps uint u30) ;; 0.3% = 30 basis points
-(define-data-var fee-recipient principal CONTRACT-OWNER)
+(define-data-var maker-fee-bps uint u10)
+(define-data-var taker-fee-bps uint u30)
+(define-data-var fee-recipient principal (as-contract tx-sender))
 (define-data-var accumulated-fees uint u0)
+(define-data-var contract-owner (optional principal) none)
 
 ;; Global settings
 (define-data-var contract-paused bool false)
@@ -126,8 +125,18 @@
 ;; Admin management
 (define-map admins principal bool)
 (define-map verifiers principal bool)
-(map-set admins CONTRACT-OWNER true)
-(map-set verifiers CONTRACT-OWNER true)
+
+;; Initialize the contract
+(define-public (initialize (owner principal))
+  (begin
+    (asserts! (is-none (var-get contract-owner)) ERR-UNAUTHORIZED)
+    (var-set contract-owner (some owner))
+    (var-set fee-recipient owner)
+    (map-set admins owner true)
+    (map-set verifiers owner true)
+    (ok true)
+  )
+)
 
 ;; Token Listing Functions
 
@@ -549,9 +558,9 @@
 )
 
 (define-public (remove-admin (admin principal))
-  (begin
+  (let ((owner (unwrap! (var-get contract-owner) ERR-NOT-INITIALIZED)))
     (asserts! (is-admin tx-sender) ERR-UNAUTHORIZED)
-    (asserts! (not (is-eq admin CONTRACT-OWNER)) ERR-UNAUTHORIZED)
+    (asserts! (not (is-eq admin owner)) ERR-UNAUTHORIZED)
     (map-set admins admin false)
     (print { event: "admin-removed", admin: admin })
     (ok true)
