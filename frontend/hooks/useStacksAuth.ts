@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { AppConfig, showConnect, UserSession } from '@stacks/connect';
 import { StacksMainnet, StacksTestnet } from '@stacks/network';

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { callReadOnlyFunction, cvToJSON, stringAsciiCV, ClarityValue } from '@stacks/transactions';
 import { useStacksAuth } from './useStacksAuth';
