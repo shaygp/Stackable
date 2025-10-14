@@ -58,7 +58,7 @@ export default function TerminalPage() {
   ])
   const [input, setInput] = useState("")
   const [userStats, setUserStats] = useState<UserStats>({
-    level: 1,
+    level: 0,
     totalTrades: 0,
     winRate: 0,
     portfolio: 0,
@@ -66,11 +66,7 @@ export default function TerminalPage() {
     streak: 0,
   })
 
-  const [trendingTokens] = useState<TrendingToken[]>([
-    { symbol: "SATOSHI", name: "Satoshi Token", price: 0.0234, change24h: 25.4, volume: "2.1M", marketCap: "45M" },
-    { symbol: "HODL", name: "HODL Coin", price: 1.567, change24h: 18.2, volume: "5.8M", marketCap: "120M" },
-    { symbol: "MOON", name: "To The Moon", price: 0.891, change24h: 12.7, volume: "3.2M", marketCap: "78M" },
-  ])
+  const [trendingTokens] = useState<TrendingToken[]>([])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -432,34 +428,38 @@ export default function TerminalPage() {
                 <h3 className="text-sm font-semibold text-white">Trending Now</h3>
               </div>
               <div className="space-y-3">
-                {trendingTokens.map((token) => (
-                  <motion.div
-                    key={token.symbol}
-                    className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => setInput(`buy $${token.symbol} for 10 STX`)}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white">${token.symbol}</span>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            token.change24h > 0 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                          }`}
-                        >
-                          {token.change24h > 0 ? "+" : ""}
-                          {token.change24h}%
-                        </span>
+                {trendingTokens.length > 0 ? (
+                  trendingTokens.map((token) => (
+                    <motion.div
+                      key={token.symbol}
+                      className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => setInput(`buy $${token.symbol} for 10 STX`)}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white">${token.symbol}</span>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              token.change24h > 0 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {token.change24h > 0 ? "+" : ""}
+                            {token.change24h}%
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400">${token.price}</p>
                       </div>
-                      <p className="text-xs text-slate-400">${token.price}</p>
-                    </div>
-                    {token.change24h > 0 ? (
-                      <TrendingUp className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 text-red-400" />
-                    )}
-                  </motion.div>
-                ))}
+                      {token.change24h > 0 ? (
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      )}
+                    </motion.div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 text-center py-4">Launch tokens to see them trending</p>
+                )}
               </div>
             </div>
 
