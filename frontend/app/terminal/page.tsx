@@ -18,9 +18,9 @@ import {
   FaTrophy as Trophy,
 } from "react-icons/fa"
 import { useWallet } from "@/contexts/WalletContext"
-import { makeContractCall } from '@stacks/transactions'
+import { openContractCall } from '@stacks/connect'
 import { StacksTestnet, StacksMainnet } from '@stacks/network'
-import { stringAsciiCV, uintCV } from '@stacks/transactions'
+import { stringAsciiCV, uintCV, PostConditionMode } from '@stacks/transactions'
 
 interface Message {
   id: string
@@ -124,7 +124,15 @@ export default function TerminalPage() {
 
           const contractAddress = process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS || ''
 
-          await makeContractCall({
+          const processingMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: "system",
+            content: `Launching token $${symbol}. Check your wallet to confirm.`,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, processingMessage])
+
+          await openContractCall({
             network,
             contractAddress,
             contractName: 'bonding-curve',
@@ -137,8 +145,7 @@ export default function TerminalPage() {
               uintCV(1000000),
               uintCV(10000000),
             ],
-            senderKey: '',
-            postConditionMode: 1,
+            postConditionMode: PostConditionMode.Allow,
             onFinish: (data) => {
               const successMessage: Message = {
                 id: (Date.now() + 2).toString(),
@@ -158,14 +165,6 @@ export default function TerminalPage() {
               setMessages((prev) => [...prev, cancelMessage])
             },
           })
-
-          const processingMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            type: "system",
-            content: `Launching token $${symbol}. Check your wallet to confirm.`,
-            timestamp: new Date(),
-          }
-          setMessages((prev) => [...prev, processingMessage])
         }
       } else if (lowerInput.includes("buy")) {
         const tokenMatch = currentInput.match(/\$(\w+)/)
@@ -181,7 +180,15 @@ export default function TerminalPage() {
 
           const contractAddress = process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS || ''
 
-          await makeContractCall({
+          const processingMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: "system",
+            content: `Buying $${token} for ${amount} STX. Check your wallet to confirm.`,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, processingMessage])
+
+          await openContractCall({
             network,
             contractAddress,
             contractName: 'bonding-curve',
@@ -191,8 +198,7 @@ export default function TerminalPage() {
               uintCV(Math.floor(amount * 1000000)),
               uintCV(100),
             ],
-            senderKey: '',
-            postConditionMode: 1,
+            postConditionMode: PostConditionMode.Allow,
             onFinish: (data) => {
               const successMessage: Message = {
                 id: (Date.now() + 2).toString(),
@@ -212,14 +218,6 @@ export default function TerminalPage() {
               setMessages((prev) => [...prev, cancelMessage])
             },
           })
-
-          const processingMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            type: "system",
-            content: `Buying $${token} for ${amount} STX. Check your wallet to confirm.`,
-            timestamp: new Date(),
-          }
-          setMessages((prev) => [...prev, processingMessage])
         }
       } else if (lowerInput.includes("sell")) {
         const tokenMatch = currentInput.match(/\$(\w+)/)
@@ -235,7 +233,15 @@ export default function TerminalPage() {
 
           const contractAddress = process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS || ''
 
-          await makeContractCall({
+          const processingMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: "system",
+            content: `Selling ${amount} $${token}. Check your wallet to confirm.`,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, processingMessage])
+
+          await openContractCall({
             network,
             contractAddress,
             contractName: 'bonding-curve',
@@ -245,8 +251,7 @@ export default function TerminalPage() {
               uintCV(Math.floor(amount)),
               uintCV(1),
             ],
-            senderKey: '',
-            postConditionMode: 1,
+            postConditionMode: PostConditionMode.Allow,
             onFinish: (data) => {
               const successMessage: Message = {
                 id: (Date.now() + 2).toString(),
@@ -266,14 +271,6 @@ export default function TerminalPage() {
               setMessages((prev) => [...prev, cancelMessage])
             },
           })
-
-          const processingMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            type: "system",
-            content: `Selling ${amount} $${token}. Check your wallet to confirm.`,
-            timestamp: new Date(),
-          }
-          setMessages((prev) => [...prev, processingMessage])
         }
       } else {
         const helpMessage: Message = {
