@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pymongo
+httpx
+python-dotenv
+pydantic 
+google-genai

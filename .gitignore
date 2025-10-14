@@ -1,0 +1,48 @@
+# Clarinet
+.cache/
+settings/
+deployments/
+
+# Node
+node_modules/
+.env
+.env.local
+.env.production
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.log
+.cache
