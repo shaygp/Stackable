@@ -26,14 +26,16 @@ export default function Layout({ children }: LayoutProps) {
             <Link href="/marketplace" className="text-stacks-white hover:text-stacks-orange transition-colors">
               Marketplace
             </Link>
-            <Link href="/xp" className="text-stacks-white hover:text-stacks-orange transition-colors">
-              XP
+            <Link href="/terminal" className="text-stacks-white hover:text-stacks-orange transition-colors">
+              Terminal
             </Link>
-            <Link href="/governance" className="text-stacks-white hover:text-stacks-orange transition-colors">
-              Governance
+            <Link href="/templates" className="text-stacks-white hover:text-stacks-orange transition-colors">
+              Templates
+            </Link>
+            <Link href="/profile" className="text-stacks-white hover:text-stacks-orange transition-colors">
+              Profile
             </Link>
           </nav>
-
           <WalletConnect />
         </div>
       </header>

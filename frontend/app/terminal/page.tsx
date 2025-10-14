@@ -16,11 +16,13 @@ import {
   FaFire as Flame,
   FaStar as Star,
   FaTrophy as Trophy,
+  FaRobot as Robot,
 } from "react-icons/fa"
 import { useWallet } from "@/contexts/WalletContext"
 import { openContractCall } from '@stacks/connect'
 import { StacksTestnet, StacksMainnet } from '@stacks/network'
 import { stringAsciiCV, uintCV, PostConditionMode } from '@stacks/transactions'
+import { executeSwap } from '@/lib/dex-integration'
 
 interface Message {
   id: string
@@ -47,31 +49,78 @@ interface TrendingToken {
   marketCap: string
 }
 
+interface ActionTemplate {
+  id: string
+  title: string
+  description: string
+  icon: any
+  command: string
+  params?: { name: string; placeholder: string; default?: string }[]
+}
+
 export default function TerminalPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       type: "system",
-      content: "Welcome to Stackable Stacks Trading Terminal",
+      content: "🤖 Welcome to AI-Powered Trading Terminal\n\nSelect an action below and the AI agent will execute it autonomously on the Stacks blockchain.",
       timestamp: new Date(),
     },
   ])
-  const [input, setInput] = useState("")
-  const [userStats, setUserStats] = useState<UserStats>({
-    level: 0,
-    totalTrades: 0,
-    winRate: 0,
-    portfolio: 0,
-    achievements: [],
-    streak: 0,
-  })
-
-  const [trendingTokens] = useState<TrendingToken[]>([])
+  const [selectedAction, setSelectedAction] = useState<ActionTemplate | null>(null)
+  const [actionParams, setActionParams] = useState<Record<string, string>>({})
+  const [isExecuting, setIsExecuting] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const { isAuthenticated, userSession } = useWallet()
+
+  const actionTemplates: ActionTemplate[] = [
+    {
+      id: 'launch',
+      title: '🚀 Launch Token',
+      description: 'Create a new bonding curve token',
+      icon: Rocket,
+      command: 'launch',
+      params: [
+        { name: 'symbol', placeholder: 'Token symbol (e.g., SATOSHI)', default: 'MEME' }
+      ]
+    },
+    {
+      id: 'buy',
+      title: '💰 Buy Token',
+      description: 'Buy tokens with STX',
+      icon: Coins,
+      command: 'buy',
+      params: [
+        { name: 'token', placeholder: 'Token symbol', default: 'SATOSHI' },
+        { name: 'amount', placeholder: 'Amount in STX', default: '10' }
+      ]
+    },
+    {
+      id: 'swap',
+      title: '🔄 Swap on ALEX',
+      description: 'Swap tokens on ALEX DEX',
+      icon: TrendingUp,
+      command: 'swap',
+      params: [
+        { name: 'amount', placeholder: 'Amount to swap', default: '10' },
+        { name: 'from', placeholder: 'From token', default: 'STX' },
+        { name: 'to', placeholder: 'To token', default: 'ALEX' }
+      ]
+    },
+    {
+      id: 'sell',
+      title: '💸 Sell Token',
+      description: 'Sell your tokens',
+      icon: TrendingDown,
+      command: 'sell',
+      params: [
+        { name: 'token', placeholder: 'Token symbol', default: 'SATOSHI' },
+        { name: 'amount', placeholder: 'Amount to sell', default: '100' }
+      ]
+    }
+  ]
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -81,9 +130,127 @@ export default function TerminalPage() {
     scrollToBottom()
   }, [messages])
 
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+  const executeAction = async (action: ActionTemplate, params: Record<string, string>) => {
+    setIsExecuting(true)
+
+    // Build command from template
+    let command = ''
+    if (action.id === 'launch') {
+      command = `launch ${params.symbol || 'MEME'}`
+    } else if (action.id === 'buy') {
+      command = `buy ${params.token || 'SATOSHI'} for ${params.amount || '10'} STX`
+    } else if (action.id === 'swap') {
+      command = `swap ${params.amount || '10'} ${params.from || 'STX'} for ${params.to || 'ALEX'} on alex`
+    } else if (action.id === 'sell') {
+      command = `sell ${params.amount || '100'} ${params.token || 'SATOSHI'}`
+    }
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: "user",
+      content: `Executing: ${action.title}\n${command}`,
+      timestamp: new Date(),
+    }
+    setMessages((prev) => [...prev, userMessage])
+
+    try {
+      const processingMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "system",
+        content: "🤖 AI Agent is executing your request...",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, processingMessage])
+
+      const response = await fetch('/api/agent/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const successMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          type: "success",
+          content: `✅ ${data.message}\n\nTransaction ID: ${data.txId}\nAgent Address: ${data.agentAddress}`,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, successMessage])
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          type: "error",
+          content: `❌ ${data.message}`,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      }
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "error",
+        content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to execute'}`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsExecuting(false)
+      setSelectedAction(null)
+      setActionParams({})
+    }
+  }
+
+  const handleAgentCommand = async (command: string) => {
+    try {
+      const processingMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "system",
+        content: "🤖 AI Agent is processing your command...",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, processingMessage])
+
+      const response = await fetch('/api/agent/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const successMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          type: "success",
+          content: `✅ ${data.message}\n\nTransaction ID: ${data.txId}\nAgent Address: ${data.agentAddress}`,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, successMessage])
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          type: "error",
+          content: `❌ ${data.message}`,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      }
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "error",
+        content: `❌ Agent error: ${error instanceof Error ? error.message : 'Failed to execute command'}`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    }
+  }
 
   const handleSendMessage = async () => {
     if (!input.trim()) return
@@ -99,11 +266,18 @@ export default function TerminalPage() {
     const currentInput = input
     setInput("")
 
+    // If in agent mode, use AI agent
+    if (agentMode) {
+      await handleAgentCommand(currentInput)
+      return
+    }
+
+    // Wallet mode - require authentication
     if (!isAuthenticated) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "error",
-        content: "Please connect your wallet to execute transactions",
+        content: "Please connect your wallet to execute transactions in Wallet Mode, or switch to Agent Mode",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, errorMessage])
@@ -272,11 +446,83 @@ export default function TerminalPage() {
             },
           })
         }
+      } else if (lowerInput.includes("swap") && lowerInput.includes("alex")) {
+        // Parse swap command: "swap X STX for ALEX" or "swap X ALEX for STX"
+        const swapMatch = currentInput.match(/swap\s+(\d+(?:\.\d+)?)\s+(\w+)\s+for\s+(\w+)/i)
+
+        if (swapMatch) {
+          const amount = parseFloat(swapMatch[1])
+          const fromToken = swapMatch[2].toUpperCase()
+          const toToken = swapMatch[3].toUpperCase()
+
+          const isMainnet = process.env.NEXT_PUBLIC_NETWORK === 'mainnet'
+
+          const processingMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: "system",
+            content: `Swapping ${amount} ${fromToken} for ${toToken} on ALEX. Check your wallet to confirm.`,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, processingMessage])
+
+          await executeSwap(
+            {
+              dex: 'alex',
+              fromToken,
+              toToken,
+              amountIn: amount,
+              minAmountOut: amount * 0.995, // 0.5% slippage tolerance
+              isMainnet,
+            },
+            (data) => {
+              const successMessage: Message = {
+                id: (Date.now() + 2).toString(),
+                type: "success",
+                content: `Successfully swapped ${amount} ${fromToken} for ${toToken} on ALEX!`,
+                timestamp: new Date(),
+              }
+              setMessages((prev) => [...prev, successMessage])
+            },
+            () => {
+              const cancelMessage: Message = {
+                id: (Date.now() + 2).toString(),
+                type: "error",
+                content: "Transaction cancelled",
+                timestamp: new Date(),
+              }
+              setMessages((prev) => [...prev, cancelMessage])
+            }
+          )
+        } else {
+          const helpMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: "system",
+            content: "Invalid swap command format. Example:\n• swap 10 STX for ALEX on alex\n• swap 5 ALEX for STX on alex",
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, helpMessage])
+        }
+      } else if (lowerInput.includes("swap") && lowerInput.includes("velar")) {
+        const infoMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "system",
+          content: "Velar DEX integration coming soon! For now, use:\n• swap X STX for ALEX on alex\n\nOr visit app.velar.co to trade on Velar directly.",
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, infoMessage])
+      } else if (lowerInput.includes("deploy")) {
+        const deployMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "system",
+          content: "Visit /templates to deploy contracts:\n• Bonding Curve Token\n• Staking Pool\n• Liquidity Pool (AMM)\n• Multi-Sig Treasury",
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, deployMessage])
       } else {
         const helpMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: "system",
-          content: "Available commands:\n• launch $TOKEN\n• buy $TOKEN for X STX\n• sell X $TOKEN",
+          content: "Available commands:\n• launch $TOKEN - Create new bonding curve token\n• buy $TOKEN for X STX - Buy tokens\n• sell X $TOKEN - Sell tokens\n• swap X STX for ALEX on alex - Trade on ALEX DEX\n• swap X ALEX for STX on alex - Trade on ALEX DEX\n• swap on velar - Trade on Velar DEX (coming soon)\n• deploy contract - Deploy smart contracts from templates",
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, helpMessage])
@@ -301,6 +547,7 @@ export default function TerminalPage() {
   const quickCommands = [
     { label: "Buy $SATOSHI", command: "buy $SATOSHI for 10 STX", icon: TrendingUp },
     { label: "Launch Token", command: "launch $MYMEME", icon: Rocket },
+    { label: "Swap on ALEX", command: "swap 10 STX for ALEX on alex", icon: Coins },
   ]
 
   return (
