@@ -7,7 +7,7 @@ import { createHash } from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
-    const { command } = await request.json()
+    const { command, userAddress } = await request.json()
 
     if (!command) {
       return NextResponse.json(
@@ -16,9 +16,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Initialize AI agent and wallet
+    // Initialize AI agent
     const gemini = createGeminiAgent()
-    const wallet = await createAgentWallet()
 
     // Parse command with agent
     const intent = await gemini.parseCommand(command)
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     const network = new StacksTestnet()
-    let result: any
+    let transactionParams: any = null
     let additionalData: any = {}
 
     switch (intent.action) {
@@ -313,12 +312,17 @@ export async function POST(request: NextRequest) {
       }
 
       case 'balance': {
-        const address = wallet.getAddress()
+        if (!userAddress) {
+          return NextResponse.json({
+            success: false,
+            message: 'Please connect your wallet to view balance',
+          })
+        }
 
         const [balanceRes, ftRes, nftRes] = await Promise.all([
-          fetch(`${network.coreApiUrl}/v2/accounts/${address}`),
-          fetch(`${network.coreApiUrl}/extended/v1/address/${address}/balances`),
-          fetch(`${network.coreApiUrl}/extended/v1/address/${address}/nft`),
+          fetch(`${network.coreApiUrl}/v2/accounts/${userAddress}`),
+          fetch(`${network.coreApiUrl}/extended/v1/address/${userAddress}/balances`),
+          fetch(`${network.coreApiUrl}/extended/v1/address/${userAddress}/nft`),
         ])
 
         const [balanceData, ftData, nftData] = await Promise.all([
@@ -342,7 +346,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Portfolio for ${address}`,
+          message: `Portfolio for ${userAddress.substring(0, 8)}...`,
           stxBalance,
           stxLocked,
           fungibleTokens,

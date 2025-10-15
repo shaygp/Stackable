@@ -237,16 +237,28 @@ export default function TerminalPage() {
   }
 
   const handleAgentCommand = async (command: string) => {
+    if (!isAuthenticated) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "error",
+        content: "⚠️ Please connect your Stacks wallet first!",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+      return
+    }
+
     try {
       const processingMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "system",
-        content: "🤖 AI Agent is processing your command...",
+        content: "🤖 Understanding your command...",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, processingMessage])
 
-      const response = await fetch('/api/agent/execute', {
+      // Parse command with AI
+      const response = await fetch('/api/agent/parse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -256,15 +268,7 @@ export default function TerminalPage() {
 
       const data = await response.json()
 
-      if (data.success) {
-        const successMessage: Message = {
-          id: (Date.now() + 2).toString(),
-          type: "success",
-          content: `✅ ${data.message}\n\nTransaction ID: ${data.txId}\nAgent Address: ${data.agentAddress}`,
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, successMessage])
-      } else {
+      if (!data.success) {
         const errorMessage: Message = {
           id: (Date.now() + 2).toString(),
           type: "error",
@@ -272,12 +276,54 @@ export default function TerminalPage() {
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, errorMessage])
+        return
       }
+
+      const intent = data.intent
+      const address = userSession?.loadUserData()?.profile?.stxAddress?.testnet
+
+      // Handle balance (read-only)
+      if (intent.action === 'balance') {
+        const network = new StacksTestnet()
+        const balanceRes = await fetch(`${network.coreApiUrl}/v2/accounts/${address}`)
+        const ftRes = await fetch(`${network.coreApiUrl}/extended/v1/address/${address}/balances`)
+
+        const balanceData = await balanceRes.json()
+        const ftData = await ftRes.json()
+
+        const stxBalance = (parseInt(balanceData.balance || '0') / 1000000).toFixed(6)
+        const fungibleTokens = Object.entries(ftData.fungible_tokens || {})
+
+        let content = `💰 Your Balance\n\nSTX: ${stxBalance}\n`
+        if (fungibleTokens.length > 0) {
+          content += `\nTokens:\n${fungibleTokens.slice(0, 5).map(([token, data]: any) =>
+            `• ${token.split('::')[1]}: ${data.balance}`
+          ).join('\n')}`
+        }
+
+        const successMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          type: "success",
+          content,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, successMessage])
+        return
+      }
+
+      // For all other actions, show error that they need actual implementation
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        type: "error",
+        content: `❌ Action "${intent.action}" recognized but not yet implemented with wallet integration. Use the direct commands like "launch $TOKEN" or "buy $TOKEN for X STX" instead.`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "error",
-        content: `❌ Agent error: ${error instanceof Error ? error.message : 'Failed to execute command'}`,
+        content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to process command'}`,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, errorMessage])
