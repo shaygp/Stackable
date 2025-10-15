@@ -70,8 +70,20 @@ export default function TerminalPage() {
   const [selectedAction, setSelectedAction] = useState<ActionTemplate | null>(null)
   const [actionParams, setActionParams] = useState<Record<string, string>>({})
   const [isExecuting, setIsExecuting] = useState(false)
+  const [input, setInput] = useState('')
+  const [agentMode] = useState(true)
+  const [trendingTokens] = useState<TrendingToken[]>([])
+  const [userStats] = useState<UserStats>({
+    level: 1,
+    totalTrades: 0,
+    winRate: 0,
+    portfolio: 0,
+    achievements: [],
+    streak: 0
+  })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { isAuthenticated, userSession } = useWallet()
 
