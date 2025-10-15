@@ -79,34 +79,34 @@ export default function ElegantLandingPage() {
 
   const projects = [
     {
-      title: "AI-Powered Token Launch",
+      title: "SIP-010 Token Creation",
       description:
-        "Deploy vibe tokens instantly using natural language commands. Our AI understands your intent and creates smart contracts automatically.",
+        "Deploy fungible tokens on Bitcoin L2 with full SIP-010 standard compliance. Create your own tokens in seconds with AI-powered commands.",
       link: "/terminal",
     },
     {
-      title: "Bonding Curve Trading",
+      title: "BNS Registration (.btc domains)",
       description:
-        "Trade with transparent, algorithmic pricing. No order books, no manipulation - just pure mathematical curves determining fair value.",
+        "Register .btc domain names on Bitcoin blockchain via Stacks. Own your identity with names anchored directly to Bitcoin.",
       link: "/terminal",
     },
     {
-      title: "Real-time Market Intelligence",
+      title: "Pool Stacking & Bitcoin Rewards",
       description:
-        "Get instant insights from our AI Copilot. Market trends, trading signals, and personalized recommendations at your fingertips.",
+        "Delegate STX to stacking pools and earn BTC rewards. Join with any amount - no 100k STX minimum required for pool stacking.",
       link: "/terminal",
     },
     {
-      title: "Stacks Blockchain Integration",
+      title: "Bitcoin Settlement Layer",
       description:
-        "Built on Bitcoin's Layer 2, secured by Bitcoin. Lightning-fast transactions with the security of Bitcoin for optimal trading experience.",
+        "Every transaction settles on Bitcoin via OP_RETURN. View real-time Bitcoin block anchoring for Stacks transactions with full transparency.",
       link: "/terminal",
     },
     {
-      title: "Community-Driven Ecosystem",
+      title: "Portfolio & Contract Reader",
       description:
-        "Join thousands of traders, creators, and DeFi enthusiasts. Share strategies, discover new tokens, and shape the future together.",
-      link: "/profile",
+        "Track all your assets - STX, tokens, NFTs. Read contract states, check stacking info, and monitor your Bitcoin L2 holdings in real-time.",
+      link: "/terminal",
     },
   ]
 
