@@ -20,12 +20,12 @@ export const HoverEffect = ({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   return (
-    <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 py-10", className)}>
+    <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-10 justify-items-center mx-auto max-w-7xl", className)}>
       {items.map((item, idx) => (
         <a
           href={item?.link}
           key={`${item.link}-${idx}`}
-          className="relative group block p-2 h-full w-full"
+          className="relative group block p-2 h-full w-full max-w-md"
           onMouseEnter={() => setHoveredIndex(idx)}
           onMouseLeave={() => setHoveredIndex(null)}
         >

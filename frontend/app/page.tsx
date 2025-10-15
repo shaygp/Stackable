@@ -56,24 +56,24 @@ export default function ElegantLandingPage() {
 
   const faqs = [
     {
-      question: "What is bonding curve trading?",
+      question: "How do I launch a token on Stackable?",
       answer:
-        "Bonding curves are smart contracts that automatically set token prices based on supply and demand. As more people buy, the price increases algorithmically, ensuring fair and transparent pricing without traditional order books.",
+        "Simply connect your Stacks wallet and use our terminal to create SIP-010 tokens. You can type commands like 'create token called MOON' or use our quick action buttons. The AI Agent will guide you through the entire process on the Stacks blockchain.",
     },
     {
-      question: "How does the AI Copilot assist me?",
+      question: "What can I do with the AI Agent?",
       answer:
-        "Our AI Copilot analyzes market trends, suggests optimal trading strategies, helps you craft effective token launches, and provides real-time insights to maximize your trading success on the Stacks blockchain.",
+        "The AI Agent helps you deploy tokens, register .btc names via BNS, participate in pool stacking to earn BTC rewards, track your portfolio, and execute smart contract interactions - all through simple commands. No technical knowledge required!",
     },
     {
-      question: "Can I use this without a wallet?",
+      question: "Why build on Stacks instead of other chains?",
       answer:
-        "Yes! You can explore the platform, view trending tokens, and simulate trades without connecting a wallet. However, to actually launch or trade tokens, you'll need a Stacks-compatible wallet like Leather or Xverse.",
+        "Stacks is a Bitcoin Layer 2 that anchors all transactions to Bitcoin, giving you Bitcoin's security with smart contract capabilities. You can earn real BTC rewards through stacking, register .btc names, and build DeFi apps secured by the most trusted blockchain.",
     },
     {
-      question: "What makes Stackable different?",
+      question: "How does pool stacking work?",
       answer:
-        "We're the first platform to combine natural language processing with DeFi trading. Simply type what you want to do, and our AI translates it into blockchain transactions - no technical knowledge required!",
+        "Pool stacking lets you earn BTC rewards even if you have less than 100k STX. Simply delegate your STX to a pool operator who combines it with others to meet the minimum threshold. You earn proportional BTC rewards based on your contribution.",
     },
   ]
 
@@ -315,7 +315,7 @@ export default function ElegantLandingPage() {
       {/* Footer */}
       <footer className="border-t border-white/5 py-20 relative">
         <div className="container mx-auto px-8">
-          <div className="grid md:grid-cols-4 gap-12">
+          <div className="grid md:grid-cols-2 gap-12 max-w-2xl mx-auto">
             {/* Brand */}
             <div>
               <div className="flex items-center gap-3 mb-8">
@@ -327,37 +327,12 @@ export default function ElegantLandingPage() {
               <p className="text-white/50 mb-8 font-normal text-sm leading-relaxed">
                 The future of DeFi trading powered by AI and built on Stacks blockchain.
               </p>
-              <div className="flex items-center gap-4">
-                <a
-                  href="#"
-                  className="text-white/40 hover:text-slate-400 transition-colors p-2 rounded-lg hover:bg-white/5"
-                >
-                  <Github className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  className="text-white/40 hover:text-slate-400 transition-colors p-2 rounded-lg hover:bg-white/5"
-                >
-                  <Twitter className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  className="text-white/40 hover:text-slate-400 transition-colors p-2 rounded-lg hover:bg-white/5"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                </a>
-              </div>
             </div>
 
             {/* Project */}
             <div>
-              <h4 className="text-white/90 font-normal mb-8 text-sm">Project</h4>
+              <h4 className="text-white/90 font-normal mb-8 text-sm">Navigation</h4>
               <ul className="space-y-4 text-white/50 text-sm font-normal">
-                <li>
-                  <a href="#" className="hover:text-slate-400 transition-colors">
-                    Home
-                  </a>
-                </li>
                 <li>
                   <Link href="/terminal" className="hover:text-slate-400 transition-colors">
                     Terminal
@@ -367,57 +342,6 @@ export default function ElegantLandingPage() {
                   <Link href="/leaderboard" className="hover:text-slate-400 transition-colors">
                     Leaderboard
                   </Link>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-slate-400 transition-colors">
-                    Documentation
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Community */}
-            <div>
-              <h4 className="text-white/90 font-normal mb-8 text-sm">Community</h4>
-              <ul className="space-y-4 text-white/50 text-sm font-normal">
-                <li>
-                  <a href="#" className="hover:text-slate-400 transition-colors">
-                    Discord
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-slate-400 transition-colors">
-                    GitHub
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-slate-400 transition-colors">
-                    Twitter
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-slate-400 transition-colors">
-                    Telegram
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Built On */}
-            <div>
-              <h4 className="text-white/90 font-normal mb-8 text-sm">Built On</h4>
-              <ul className="space-y-4 text-white/50 text-sm font-normal">
-                <li className="flex items-center gap-2">
-                  <Globe className="w-3 h-3" />
-                  <span className="hover:text-slate-400 transition-colors">Stacks</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Bot className="w-3 h-3" />
-                  <span className="hover:text-slate-400 transition-colors">OpenAI</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="w-3 h-3" />
-                  <span className="hover:text-slate-400 transition-colors">WalletConnect</span>
                 </li>
               </ul>
             </div>

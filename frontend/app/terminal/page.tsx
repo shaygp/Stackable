@@ -63,7 +63,7 @@ export default function TerminalPage() {
     {
       id: "1",
       type: "system",
-      content: "₿ Stacks AI Agent - Bitcoin L2 Features\n\nReal Features:\n• SIP-010 tokens - fungible token standard\n• BNS registration - .btc names on Bitcoin\n• Pool stacking - earn BTC with less STX\n• Portfolio tracking - all assets\n• Bitcoin anchoring - see settlement blocks\n• NFT minting (SIP-009)\n• Contract state reading\n• STX transfers\n\nAll features use REAL Stacks testnet.",
+      content: "₿ Stacks AI Agent - Bitcoin L2 Features\n\nAvailable Features:\n• SIP-010 tokens - fungible token standard\n• BNS registration - .btc names on Bitcoin\n• Pool stacking - earn BTC with less STX\n• Portfolio tracking - all assets\n• Bitcoin anchoring - see settlement blocks\n• NFT minting (SIP-009)\n• Contract state reading\n• STX transfers\n\nAll features use Stacks testnet.",
       timestamp: new Date(),
     },
   ])
