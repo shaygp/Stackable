@@ -79,33 +79,33 @@ export default function ElegantLandingPage() {
 
   const projects = [
     {
-      title: "SIP-010 Token Creation",
+      title: "SIP-010 TOKEN DEPLOYMENT",
       description:
-        "Deploy fungible tokens on Bitcoin L2 with full SIP-010 standard compliance. Create your own tokens in seconds with AI-powered commands.",
+        "Deploy fungible token contracts using SIP-010 trait standard. Includes transfer(), get-balance(), get-total-supply() functions. Mints initial supply to deployer address. Compatible with DeFi protocols on Stacks.",
       link: "/terminal",
     },
     {
-      title: "BNS Registration (.btc domains)",
+      title: "BNS NAME REGISTRATION",
       description:
-        "Register .btc domain names on Bitcoin blockchain via Stacks. Own your identity with names anchored directly to Bitcoin.",
+        "Register .btc namespace domains via ST000000000000000000002AMW42H.bns contract. Two-step process: name-preorder with hash160(name+salt), then name-register. Names anchor to Bitcoin via OP_RETURN.",
       link: "/terminal",
     },
     {
-      title: "Pool Stacking & Bitcoin Rewards",
+      title: "POX-4 POOL STACKING",
       description:
-        "Delegate STX to stacking pools and earn BTC rewards. Join with any amount - no 100k STX minimum required for pool stacking.",
+        "Delegate STX via delegate-stx() function to pool operators. No minimum threshold. Pool operators call delegate-stack-stx() to lock delegated STX and earn BTC rewards through Proof of Transfer consensus.",
       link: "/terminal",
     },
     {
-      title: "Bitcoin Settlement Layer",
+      title: "STX TRANSFER & BALANCE",
       description:
-        "Every transaction settles on Bitcoin via OP_RETURN. View real-time Bitcoin block anchoring for Stacks transactions with full transparency.",
+        "Execute STX token transfers with optional memo field. Query balances via /v2/accounts API. Track locked STX from stacking, fungible tokens (SIP-010), and NFTs (SIP-009) in real-time.",
       link: "/terminal",
     },
     {
-      title: "Portfolio & Contract Reader",
+      title: "CONTRACT STATE READER",
       description:
-        "Track all your assets - STX, tokens, NFTs. Read contract states, check stacking info, and monitor your Bitcoin L2 holdings in real-time.",
+        "Call read-only functions on any deployed Clarity contract via /v2/contracts/call-read. Query PoX info, token balances, BNS names. Returns Clarity values as JSON for integration.",
       link: "/terminal",
     },
   ]
