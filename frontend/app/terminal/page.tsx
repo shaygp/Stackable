@@ -63,7 +63,7 @@ export default function TerminalPage() {
     {
       id: "1",
       type: "system",
-      content: "🤖 Welcome to AI-Powered Trading Terminal\n\nSelect an action below and the AI agent will execute it autonomously on the Stacks blockchain.",
+      content: "₿ Stacks AI Agent - Bitcoin L2 Features\n\nReal Features:\n• SIP-010 tokens - fungible token standard\n• BNS registration - .btc names on Bitcoin\n• Pool stacking - earn BTC with less STX\n• Portfolio tracking - all assets\n• Bitcoin anchoring - see settlement blocks\n• NFT minting (SIP-009)\n• Contract state reading\n• STX transfers\n\nAll features use REAL Stacks testnet.",
       timestamp: new Date(),
     },
   ])
@@ -89,47 +89,41 @@ export default function TerminalPage() {
 
   const actionTemplates: ActionTemplate[] = [
     {
-      id: 'launch',
-      title: '🚀 Launch Token',
-      description: 'Create a new bonding curve token',
-      icon: Rocket,
-      command: 'launch',
-      params: [
-        { name: 'symbol', placeholder: 'Token symbol (e.g., SATOSHI)', default: 'MEME' }
-      ]
-    },
-    {
-      id: 'buy',
-      title: '💰 Buy Token',
-      description: 'Buy tokens with STX',
+      id: 'balance',
+      title: '💰 My Portfolio',
+      description: 'Show all holdings (STX, tokens, NFTs)',
       icon: Coins,
-      command: 'buy',
+      command: 'balance',
+      params: []
+    },
+    {
+      id: 'token',
+      title: '🪙 Create SIP-010 Token',
+      description: 'Deploy fungible token standard',
+      icon: Rocket,
+      command: 'create-token',
       params: [
-        { name: 'token', placeholder: 'Token symbol', default: 'SATOSHI' },
-        { name: 'amount', placeholder: 'Amount in STX', default: '10' }
+        { name: 'symbol', placeholder: 'Token symbol (e.g., MOON)', default: '' }
       ]
     },
     {
-      id: 'swap',
-      title: '🔄 Swap on ALEX',
-      description: 'Swap tokens on ALEX DEX',
+      id: 'bns',
+      title: '🔤 Register .btc Name',
+      description: 'BNS - names anchored to Bitcoin',
       icon: TrendingUp,
-      command: 'swap',
+      command: 'bns-register',
       params: [
-        { name: 'amount', placeholder: 'Amount to swap', default: '10' },
-        { name: 'from', placeholder: 'From token', default: 'STX' },
-        { name: 'to', placeholder: 'To token', default: 'ALEX' }
+        { name: 'name', placeholder: 'Your name (e.g., alice)', default: '' }
       ]
     },
     {
-      id: 'sell',
-      title: '💸 Sell Token',
-      description: 'Sell your tokens',
+      id: 'pool',
+      title: '₿ Pool Stacking',
+      description: 'Stake with pools (< 100k STX)',
       icon: TrendingDown,
-      command: 'sell',
+      command: 'pool-stack',
       params: [
-        { name: 'token', placeholder: 'Token symbol', default: 'SATOSHI' },
-        { name: 'amount', placeholder: 'Amount to sell', default: '100' }
+        { name: 'amount', placeholder: 'Amount in STX', default: '1000' }
       ]
     }
   ]
@@ -145,16 +139,15 @@ export default function TerminalPage() {
   const executeAction = async (action: ActionTemplate, params: Record<string, string>) => {
     setIsExecuting(true)
 
-    // Build command from template
     let command = ''
-    if (action.id === 'launch') {
-      command = `launch ${params.symbol || 'MEME'}`
-    } else if (action.id === 'buy') {
-      command = `buy ${params.token || 'SATOSHI'} for ${params.amount || '10'} STX`
-    } else if (action.id === 'swap') {
-      command = `swap ${params.amount || '10'} ${params.from || 'STX'} for ${params.to || 'ALEX'} on alex`
-    } else if (action.id === 'sell') {
-      command = `sell ${params.amount || '100'} ${params.token || 'SATOSHI'}`
+    if (action.id === 'balance') {
+      command = 'balance'
+    } else if (action.id === 'token') {
+      command = `create token called ${params.symbol || 'TOKEN'}`
+    } else if (action.id === 'bns') {
+      command = `register ${params.name || 'name'}.btc`
+    } else if (action.id === 'pool') {
+      command = `pool stack ${params.amount || '1000'} STX`
     }
 
     const userMessage: Message = {
@@ -169,7 +162,7 @@ export default function TerminalPage() {
       const processingMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "system",
-        content: "🤖 AI Agent is executing your request...",
+        content: "🤖 Processing...",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, processingMessage])
@@ -185,10 +178,37 @@ export default function TerminalPage() {
       const data = await response.json()
 
       if (data.success) {
+        let content = `✅ ${data.message}`
+
+        if (data.txId) {
+          content += `\n\nTx: ${data.txId}`
+        }
+        if (data.explorerLink) {
+          content += `\n\nExplorer: ${data.explorerLink}`
+        }
+        if (data.stackingAmount) {
+          content += `\n\n₿ Stacking: ${data.stackingAmount} STX`
+          content += `\nBTC Rewards to: ${data.btcRewardAddress}`
+          content += `\nDuration: ${data.duration} cycles (${data.cycleInfo})`
+        }
+        if (data.contractName) {
+          content += `\n\nContract: ${data.agentAddress}.${data.contractName}`
+        }
+        if (data.nftType) {
+          content += `\n\nNFT Standard: ${data.nftType}`
+        }
+        if (data.txInfo) {
+          content += `\n\n₿ Bitcoin Anchor: Block ${data.txInfo.btcAnchorBlock}`
+          content += `\nStacks Block: ${data.txInfo.stxBlockHeight}`
+          content += `\nStatus: ${data.txInfo.status}`
+          content += `\nFee: ${data.txInfo.fee}`
+          content += `\n\nℹ️ ${data.txInfo.settlementInfo}`
+        }
+
         const successMessage: Message = {
           id: (Date.now() + 2).toString(),
           type: "success",
-          content: `✅ ${data.message}\n\nTransaction ID: ${data.txId}\nAgent Address: ${data.agentAddress}`,
+          content,
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, successMessage])
@@ -196,7 +216,7 @@ export default function TerminalPage() {
         const errorMessage: Message = {
           id: (Date.now() + 2).toString(),
           type: "error",
-          content: `❌ ${data.message}`,
+          content: `❌ ${data.message}${data.bridgeInfo ? '\n\n' + JSON.stringify(data.bridgeInfo, null, 2) : ''}`,
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, errorMessage])
@@ -205,7 +225,7 @@ export default function TerminalPage() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "error",
-        content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to execute'}`,
+        content: `❌ Error: ${error instanceof Error ? error.message : 'Failed'}`,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, errorMessage])
@@ -557,9 +577,10 @@ export default function TerminalPage() {
   }
 
   const quickCommands = [
-    { label: "Buy $SATOSHI", command: "buy $SATOSHI for 10 STX", icon: TrendingUp },
-    { label: "Launch Token", command: "launch $MYMEME", icon: Rocket },
-    { label: "Swap on ALEX", command: "swap 10 STX for ALEX on alex", icon: Coins },
+    { label: "💰 My Balance", command: "balance", icon: Coins },
+    { label: "🪙 Create Token", command: "create token called MOON", icon: Rocket },
+    { label: "🔤 Register .btc", command: "register alice.btc", icon: TrendingUp },
+    { label: "₿ Pool Stack", command: "pool stack 1000 STX", icon: Coins },
   ]
 
   return (
